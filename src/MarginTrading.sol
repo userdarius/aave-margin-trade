@@ -2,25 +2,27 @@
 pragma solidity ^0.8.0;
 
 // Import AAVE V3 interfaces and libraries
-import "@aave/protocol-v3/contracts/interfaces/IAaveLendingPool.sol";
-import "@aave/protocol-v3/contracts/interfaces/IAaveDataProvider.sol";
-import "@aave/protocol-v3/contracts/interfaces/IFlashLoanReceiver.sol";
-import "@aave/protocol-v3/contracts/libraries/AaveDataTypes.sol";
+import "aave-v3-core/contracts/interfaces/IPool.sol";
+import "aave-v3-core/contracts/interfaces/IPoolDataProvider.sol";
+import "aave-v3-core/contracts/flashloan/interfaces/IFlashLoanReceiver.sol";
+import "aave-v3-core/contracts/protocol/libraries/types/DataTypes.sol";
 
 // Import other required interfaces and libraries (e.g., token standards, DEX interfaces, etc.)
 // ...
 
 contract MarginTrading is IFlashLoanReceiver {
     // Define state variables for AAVE V3 lending pool, data provider, and other necessary components
-    IAaveLendingPool private lendingPool;
-    IAaveDataProvider private dataProvider;
+    IPool private lendingPool;
+    IPoolDataProvider private dataProvider;
+
+    mapping(address => mapping(address => uint256)) private collateralBalances;
 
     // ...
 
     // Constructor to initialize the AAVE V3 lending pool and data provider addresses
     constructor(address _lendingPool, address _dataProvider) {
-        lendingPool = IAaveLendingPool(_lendingPool);
-        dataProvider = IAaveDataProvider(_dataProvider);
+        lendingPool = IPool(_lendingPool);
+        dataProvider = IPoolDataProvider(_dataProvider);
     }
 
     // Function to deposit collateral
@@ -28,6 +30,15 @@ contract MarginTrading is IFlashLoanReceiver {
         // Transfer collateral from user to the contract
         // Approve the AAVE V3 lending pool to use the collateral
         // Deposit collateral into the lending pool
+        require(_amount > 0, "Amount must be greater than 0");
+
+        IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
+
+        IERC20(_asset).approve(address(lendingPool), _amount);
+
+        lendingPool.deposit(_asset, _amount, msg.sender, 0);
+
+        collateralBalances[msg.sender][_asset] += _amount;
     }
 
     // Function to open a margin position
