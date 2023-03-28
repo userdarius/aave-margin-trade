@@ -3,14 +3,16 @@ pragma solidity ^0.8.0;
 
 // Import AAVE V3 interfaces and libraries
 import "aave-v3-core/contracts/interfaces/IPool.sol";
+import "./interfaces/IMarginTrading.sol";
 import "aave-v3-core/contracts/interfaces/IPoolDataProvider.sol";
 import "aave-v3-core/contracts/flashloan/interfaces/IFlashLoanReceiver.sol";
 import "aave-v3-core/contracts/protocol/libraries/types/DataTypes.sol";
+import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 // Import other required interfaces and libraries (e.g., token standards, DEX interfaces, etc.)
 // ...
 
-contract MarginTrading is IFlashLoanReceiver {
+contract MarginTrading is IFlashLoanReceiver, IMarginTrading {
     // Define state variables for AAVE V3 lending pool, data provider, and other necessary components
     IPool private lendingPool;
     IPoolDataProvider private dataProvider;
@@ -26,7 +28,10 @@ contract MarginTrading is IFlashLoanReceiver {
     }
 
     // Function to deposit collateral
-    function depositCollateral(address _asset, uint256 _amount) external {
+    function depositCollateral(
+        address _asset,
+        uint256 _amount
+    ) external override {
         // Transfer collateral from user to the contract
         // Approve the AAVE V3 lending pool to use the collateral
         // Deposit collateral into the lending pool
@@ -46,21 +51,21 @@ contract MarginTrading is IFlashLoanReceiver {
         address _assetToBorrow,
         uint256 _amount,
         uint256 _leverage
-    ) external {
+    ) external override {
         // Check collateral requirements for the desired leverage
         // Borrow assets from the lending pool
         // Execute the margin trade
     }
 
     // Function to close a margin position
-    function closeMarginPosition() external {
+    function closeMarginPosition() external override {
         // Repay borrowed assets
         // Calculate profit or loss
         // Return collateral to the user, minus any losses or interest payments
     }
 
     // Function to liquidate undercollateralized positions
-    function liquidatePosition(address _positionOwner) external {
+    function liquidatePosition(address _positionOwner) external override {
         // Check if the position meets liquidation criteria
         // Initiate a flash loan to cover the debt
         // Execute liquidation
